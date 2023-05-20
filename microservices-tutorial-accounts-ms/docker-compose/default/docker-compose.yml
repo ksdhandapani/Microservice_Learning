@@ -1,0 +1,98 @@
+version: "3.8"
+
+services:
+  
+  config-server-ms:
+    image: dhandapaniks/microservices-tutorial-config-server:latest
+    mem_limit: 700m
+    ports: 
+      - "8071:8071"
+    networks:
+      - dhandapaniks-ms-tut-nw
+      
+  eureka-server-sa:
+    image: dhandapaniks/microservices-tutorial-eureka-server-sa:latest
+    mem_limit: 700m
+    ports: 
+      - "8070:8070"
+    networks:
+      - dhandapaniks-ms-tut-nw
+    depends_on:
+      - config-server-ms
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+        max_attempts: 3
+        window: 120s
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_CONFIG_IMPORT: configserver:http://config-server-ms:8071/
+      
+  accounts-ms:
+    image: dhandapaniks/microservices-tutorial-accounts-ms:latest
+    mem_limit: 700m
+    ports:
+      - "8080:8080"
+    networks:
+      - dhandapaniks-ms-tut-nw
+    depends_on:
+      - config-server-ms
+      - eureka-server-sa
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 3
+        window: 120s
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_CONFIG_IMPORT: configserver:http://config-server-ms:8071/
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server-sa:8070/eureka/
+            
+  loans-ms:
+    image: dhandapaniks/microservices-tutorial-loans-ms:latest
+    mem_limit: 700m 
+    ports:
+      - "8090:8090"
+    networks:
+      - dhandapaniks-ms-tut-nw
+    depends_on:
+      - config-server-ms
+      - eureka-server-sa
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 3
+        window: 120s
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_CONFIG_IMPORT: configserver:http://config-server-ms:8071/
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server-sa:8070/eureka/
+     
+    
+  cards-ms:
+    image: dhandapaniks/microservices-tutorial-cards-ms:latest
+    mem_limit: 700m 
+    ports:
+      - "9000:9000"
+    networks:
+      - dhandapaniks-ms-tut-nw
+    depends_on:
+      - config-server-ms
+      - eureka-server-sa
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 3
+        window: 120s
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_CONFIG_IMPORT: configserver:http://config-server-ms:8071/
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server-sa:8070/eureka/
+    
+  
+networks:
+  dhandapaniks-ms-tut-nw:
